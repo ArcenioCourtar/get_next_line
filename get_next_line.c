@@ -6,13 +6,14 @@
 /*   By: acourtar <acourtar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/01 10:45:27 by acourtar          #+#    #+#             */
-/*   Updated: 2022/11/30 16:38:23 by acourtar         ###   ########.fr       */
+/*   Updated: 2022/12/04 15:15:33 by acourtar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdlib.h> // malloc(), free(), size_t, NULL
 #include <unistd.h> // read()
 #include "get_next_line.h" // BUFFER_SIZE
+#include <stdio.h> // REMOVE BEFORE EVALS (also testing how branching works)
 
 size_t	gnl_strlen(const char *s, int mode);
 char	*gnl_strdup(const char *s);
