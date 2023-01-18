@@ -6,7 +6,7 @@
 /*   By: acourtar <acourtar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/01 10:45:30 by acourtar          #+#    #+#             */
-/*   Updated: 2022/11/30 16:35:45 by acourtar         ###   ########.fr       */
+/*   Updated: 2022/11/30 17:32:04 by acourtar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ size_t	gnl_strlen(const char *s, int mode)
 	return (i);
 }
 
+// Slightly modified strdup
 char	*gnl_strdup(const char *s)
 {
 	char	*str;
@@ -85,6 +86,7 @@ char	*gnl_strjoin(char const *s1, char const *s2)
 	return (str);
 }
 
+// ft_memset, unmodified
 void	*ft_memset(void *s, int c, size_t n)
 {
 	void			*ptr;
@@ -101,6 +103,7 @@ void	*ft_memset(void *s, int c, size_t n)
 	return (s);
 }
 
+// Slightly modified substr
 char	*gnl_substr(char const *s, unsigned int start, size_t len)
 {
 	unsigned int	i;
@@ -110,11 +113,7 @@ char	*gnl_substr(char const *s, unsigned int start, size_t len)
 	i = 0;
 	const_len = gnl_strlen(s, 1);
 	if (start > const_len)
-	{
 		str = malloc(1);
-		str[0] = '\0';
-		return (str);
-	}
 	else if ((start + len) > const_len)
 		str = malloc(const_len - start + 1);
 	else
