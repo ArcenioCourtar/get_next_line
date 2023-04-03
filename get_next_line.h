@@ -6,7 +6,7 @@
 /*   By: acourtar <acourtar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/16 13:32:40 by acourtar          #+#    #+#             */
-/*   Updated: 2023/04/03 19:02:40 by acourtar         ###   ########.fr       */
+/*   Updated: 2023/04/03 19:18:24 by acourtar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 # endif
 # include <stdlib.h>
 
-// Reads file 'fd' and returns everything before the next newline it encountrs
+// Reads file 'fd' and returns everything before the next newline it encounters
 char	*get_next_line(int fd);
 char	*create_str(char *buffer);
 char	*concat_str(char *old, char *buffer);

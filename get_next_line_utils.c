@@ -6,14 +6,12 @@
 /*   By: acourtar <acourtar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/03 14:08:15 by acourtar          #+#    #+#             */
-/*   Updated: 2023/04/03 19:01:25 by acourtar         ###   ########.fr       */
+/*   Updated: 2023/04/03 19:17:54 by acourtar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdlib.h> // malloc(), free(), size_t, NULL
 #include <unistd.h> // read()
-#include <fcntl.h>	// open()
-#include <stdio.h>	// printf()
 #include "get_next_line.h"
 
 // Modified strlen that also accounts for finding a newline in the buffer.

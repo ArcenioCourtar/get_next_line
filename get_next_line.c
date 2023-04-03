@@ -6,14 +6,12 @@
 /*   By: acourtar <acourtar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/16 13:33:57 by acourtar          #+#    #+#             */
-/*   Updated: 2023/04/03 18:57:46 by acourtar         ###   ########.fr       */
+/*   Updated: 2023/04/03 19:18:04 by acourtar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdlib.h> // malloc(), free(), size_t, NULL
 #include <unistd.h> // read()
-#include <fcntl.h>	// open()
-#include <stdio.h>	// printf()
 #include "get_next_line.h"
 
 // fill buffer with '\0' before filling it up again.
