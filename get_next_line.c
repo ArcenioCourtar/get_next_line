@@ -5,116 +5,110 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: acourtar <acourtar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/11/01 10:45:27 by acourtar          #+#    #+#             */
-/*   Updated: 2022/11/30 16:38:23 by acourtar         ###   ########.fr       */
+/*   Created: 2023/01/16 13:33:57 by acourtar          #+#    #+#             */
+/*   Updated: 2023/04/03 18:57:46 by acourtar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdlib.h> // malloc(), free(), size_t, NULL
 #include <unistd.h> // read()
-#include "get_next_line.h" // BUFFER_SIZE
+#include <fcntl.h>	// open()
+#include <stdio.h>	// printf()
+#include "get_next_line.h"
 
-size_t	gnl_strlen(const char *s, int mode);
-char	*gnl_strdup(const char *s);
-char	*gnl_strjoin(char const *s1, char const *s2);
-void	*ft_memset(void *s, int c, size_t n);
-char	*gnl_substr(char const *s, unsigned int start, size_t len);
-
-// frees the passed pointer and returns NULL
-// this function is only called when a malloc error happens in cat_buf
-static char	*exit_func(char *str)
+// fill buffer with '\0' before filling it up again.
+static void	clear_buf(char *buffer)
 {
-	free(str);
-	return (NULL);
+	int	i;
+
+	i = 0;
+	while (i < BUFFER_SIZE)
+	{
+		buffer[i] = '\0';
+		i++;
+	}
 }
 
-// Either puts the contents of 'buf' in 'str' or
-// Concatenates the current contents of 'str' and 'buf'
-// Returning a new string 'str' in the process
-// sets *start to 0. #lineissues
-static char	*cat_buf(char *str, char *buf, int count, int *start)
+static char	*found_nl(char *str, char *buffer)
 {
-	char	*tmp1;
-
 	if (str == NULL)
 	{
-		str = gnl_substr(buf, *start, count - *start);
-		if (str == NULL)
-			return (exit_func(str));
+		str = create_str(buffer);
+		move_buf(buffer);
 		return (str);
 	}
-	tmp1 = gnl_strdup(str);
-	free(str);
-	if (tmp1 == NULL)
-		return (exit_func(tmp1));
-	str = gnl_strjoin(tmp1, buf);
-	free(tmp1);
-	if (str == NULL)
-		return (exit_func(str));
-	*start = 0;
+	str = concat_str(str, buffer);
+	move_buf(buffer);
 	return (str);
 }
 
-// Clears the entire buffer and places new content inside of the buffer.
-// Returns an int to announce if the read() call succeeded or not.
-// 1 = read succeeded. 0 = reached EOF, but *str has content.
-// -1 = an error occured, or reached EOF, while *str is empty.
-// Using a reference to str to modify it without having to return it.
-// Sets *count to -1 since I increment count startig the while loop.
-static int	reading(int fd, char **str, char *buf, int *count)
+static char	*found_null(char *str, char *buffer)
 {
-	int	result;
-
-	ft_memset(buf, '\0', BUFFER_SIZE);
-	result = read(fd, buf, BUFFER_SIZE);
-	if (result == 0)
+	if (str == NULL)
 	{
-		if (*str[0] == '\0')
-		{
-			free(*str);
-			*str = NULL;
-			return (-1);
-		}
-		return (0);
+		str = create_str(buffer);
+		clear_buf(buffer);
 	}
-	if (result < 0)
+	else
 	{
-		free(*str);
-		*str = NULL;
-		return (-1);
+		str = concat_str(str, buffer);
+		clear_buf(buffer);
 	}
-	*count = -1;
-	return (1);
+	return (str);
 }
 
-// Reads target fd until it encounters the first newline, or EOF.
-// If reading succeeds, returns the appropriate string.
-// On error, or if EOF was already reached during the last call, returns NULL
-char	*get_next_line(int fd)
+// main loop. Goes through string in the opened filde descriptor.
+// If it finds a newline, return whatever was found prior.
+// In case it finds a '\0', store whatever was in the buffer previously
+// And attempt to read() more lines from fd.
+// Return if there's nothing more to read, or read() returns an error.
+static char	*finder(char *str, char *buffer, int fd)
 {
-	static char	buf[BUFFER_SIZE + 1];
-	static int	count = -1;
-	char		*str;
-	int			start;
+	int	loc;
+	int	res;
 
-	start = count + 1;
-	str = NULL;
+	loc = 0;
 	while (1)
 	{
-		count++;
-		if (count >= BUFFER_SIZE || buf[0] == '\0')
-		{
-			str = cat_buf(str, buf, count, &start);
-			if (str == NULL)
-				return (NULL);
-			if (reading(fd, &str, buf, &count) <= 0)
+		if (buffer[loc] == '\n')
+			return (found_nl(str, buffer));
+		else if (buffer[loc] == '\0')
+		{	
+			loc = -1;
+			str = found_null(str, buffer);
+			res = read(fd, buffer, BUFFER_SIZE);
+			if (str == NULL || res == 0)
 				return (str);
+			if (res < 0)
+			{
+				free(str);
+				clear_buf(buffer);
+				return (NULL);
+			}
 		}
-		else if (buf[count] == '\n')
+		loc++;
+	}
+}
+
+// Return line from fd when encountering a newline
+char	*get_next_line(int fd)
+{
+	static char	buffer[BUFFER_SIZE + 1];
+	char		*str;
+	int			res;
+
+	str = NULL;
+	if (buffer[0] == '\0')
+	{
+		clear_buf(buffer);
+		res = read(fd, buffer, BUFFER_SIZE);
+		if (res == 0)
+			return (NULL);
+		if (res < 0)
 		{
-			str = cat_buf(str, buf, count + 1, &start);
-			return (str);
+			clear_buf(buffer);
+			return (NULL);
 		}
 	}
-	return (str);
+	return (finder(str, buffer, fd));
 }
