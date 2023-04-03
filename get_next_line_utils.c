@@ -5,126 +5,118 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: acourtar <acourtar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/11/01 10:45:30 by acourtar          #+#    #+#             */
-/*   Updated: 2022/11/30 17:32:04 by acourtar         ###   ########.fr       */
+/*   Created: 2023/04/03 14:08:15 by acourtar          #+#    #+#             */
+/*   Updated: 2023/04/03 19:01:25 by acourtar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdlib.h> // malloc(), size_t, NULL
+#include <stdlib.h> // malloc(), free(), size_t, NULL
+#include <unistd.h> // read()
+#include <fcntl.h>	// open()
+#include <stdio.h>	// printf()
+#include "get_next_line.h"
 
-// strlen but also stops counting at \n based on 'mode'
-// mode = 1, regular strlen behaviour
-// mode = 2, checks for \0 and \n. only used for gnl_strjoin()
-size_t	gnl_strlen(const char *s, int mode)
+// Modified strlen that also accounts for finding a newline in the buffer.
+size_t	gnl_strlen(char *str)
 {
 	int	i;
 
 	i = 0;
-	if (mode == 1)
+	while (1)
 	{
-		while (s[i] != '\0')
-			i++;
+		if (str[i] == '\0')
+			return (i);
+		if (str[i] == '\n')
+			return (i + 1);
+		i++;
 	}
-	else if (mode == 2)
-	{
-		while (s[i] != '\0' && s[i] != '\n')
-			i++;
-		if (s[i] == '\n')
-			i++;
-	}
-	return (i);
 }
 
-// Slightly modified strdup
-char	*gnl_strdup(const char *s)
+// Allocate memory and store whatever was in buffer, before the
+// newline or '\0'
+char	*create_str(char *buffer)
 {
-	char	*str;
+	char	*new;
 	int		i;
 
 	i = 0;
-	if (s == NULL)
+	new = malloc(gnl_strlen(buffer) + 1);
+	if (new == NULL)
 		return (NULL);
-	str = malloc(gnl_strlen(s, 1) + 1);
-	if (str == NULL)
-		return (NULL);
-	while (s[i] != '\0')
+	while (buffer[i] != '\0' && buffer[i] != '\n')
 	{
-		str[i] = s[i];
+		new[i] = buffer[i];
 		i++;
 	}
-	str[i] = '\0';
-	return (str);
+	if (buffer[i] == '\n')
+	{
+		new[i] = '\n';
+		i++;
+	}
+	new[i] = '\0';
+	return (new);
 }
 
-// Modified strjoin that takes the buffer as second argument.
-// Checks for \0 as well as \n when iterating over the buffer.
-char	*gnl_strjoin(char const *s1, char const *s2)
+// norm compliance
+static void	*concat_norm(char *new, char *buffer, int i)
 {
-	char	*str;
+	int	k;
+
+	k = 0;
+	while (buffer[k] != '\0' && buffer[k] != '\n')
+	{
+		new[i] = buffer[k];
+		i++;
+		k++;
+	}
+	if (buffer[k] == '\n')
+	{
+		new[i] = '\n';
+		i++;
+	}
+	new[i] = '\0';
+	return (new);
+}
+
+// If a string already exists from reading out previous buffer content,
+// concatenate whatever is currently in the buffer.
+char	*concat_str(char *old, char *buffer)
+{
+	char	*new;
 	int		i;
-	int		j;
+	int		k;
 
 	i = 0;
-	j = 0;
-	str = malloc(gnl_strlen(s1, 1) + gnl_strlen(s2, 2) + 1);
-	if (str == NULL)
+	k = 0;
+	new = malloc(gnl_strlen(old) + gnl_strlen(buffer) + 1);
+	if (new == NULL)
+	{
+		free(old);
 		return (NULL);
-	while (s1[i] != '\0')
+	}
+	while (old[i] != '\0')
 	{
-		str[i] = s1[i];
+		new[i] = old[i];
 		i++;
 	}
-	while (s2[j] != '\0')
-	{
-		str[i] = s2[j];
-		i++;
-		j++;
-		if (s2[j - 1] == '\n')
-			break ;
-	}
-	str[i] = '\0';
-	return (str);
+	free(old);
+	concat_norm(new, buffer, i);
+	return (new);
 }
 
-// ft_memset, unmodified
-void	*ft_memset(void *s, int c, size_t n)
+// Shift the buffer content so that whatever has been read is overwritten
+// with all the content that hasn't been read yet.
+void	move_buf(char *buffer)
 {
-	void			*ptr;
-	unsigned char	c_uchar;
+	int	len;
+	int	i;
 
-	ptr = s;
-	c_uchar = (unsigned char)c;
-	while (n > 0)
-	{
-		*(unsigned char *)ptr = c_uchar;
-		n--;
-		ptr++;
-	}
-	return (s);
-}
-
-// Slightly modified substr
-char	*gnl_substr(char const *s, unsigned int start, size_t len)
-{
-	unsigned int	i;
-	char			*str;
-	unsigned int	const_len;
-
+	len = gnl_strlen(buffer);
 	i = 0;
-	const_len = gnl_strlen(s, 1);
-	if (start > const_len)
-		str = malloc(1);
-	else if ((start + len) > const_len)
-		str = malloc(const_len - start + 1);
-	else
-		str = malloc(len + 1);
-	if (str == NULL)
-		return (NULL);
-	while (i < len && s[start + i] != '\0')
+	while (i + len < BUFFER_SIZE)
 	{
-		str[i] = s[start + i];
+		buffer[i] = buffer[i + len];
 		i++;
 	}
-	str[i] = '\0';
-	return (str);
+	buffer[i] = '\0';
 }
