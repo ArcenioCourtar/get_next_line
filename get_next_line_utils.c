@@ -82,10 +82,8 @@ char	*concat_str(char *old, char *buffer)
 {
 	char	*new;
 	int		i;
-	int		k;
 
 	i = 0;
-	k = 0;
 	new = malloc(gnl_strlen(old) + gnl_strlen(buffer) + 1);
 	if (new == NULL)
 	{
